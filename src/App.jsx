@@ -26,6 +26,10 @@ const App = () => {
     checkAuth();
   }, [checkAuth]);
 
+  // Layout handling
+  const noLayoutRoutes = ["/login"];
+  const isLayoutVisible = !noLayoutRoutes.includes(location.pathname);
+
   // if (isCheckingAuth && !authUser)
   //   return (
   //     <div className="flex items-center justify-center h-screen">
@@ -33,20 +37,22 @@ const App = () => {
   //     </div>
   //   );
 
-  const noLayoutRoutes = ["/login"];
-
-  const isLayoutVisible = !noLayoutRoutes.includes(location.pathname);
-
   return (
-    <div data-theme={theme} className="h-screen flex bg-gray-50">
-      {isLayoutVisible && <Sidebar />}
+  <div data-theme={theme} className="min-h-screen">
+    <div className="flex h-full bg-base-100 transition-colors">
+
+      {isLayoutVisible && (
+        <aside className="h-full">
+          <Sidebar />
+        </aside>
+      )}
 
       <div className="flex flex-col flex-1 overflow-hidden">
         {isLayoutVisible && <Navbar />}
 
         <main
           className={`flex-1 overflow-y-auto ${
-            isLayoutVisible ? "p-6 bg-gray-50" : "p-0 bg-gray-300"
+            isLayoutVisible ? "p-6 bg-base-100" : "p-0 bg-gray-300"
           }`}
         >
           <Routes>
@@ -64,7 +70,10 @@ const App = () => {
 
       <Toaster position="top-right" />
     </div>
-  );
+  </div>
+);
+
+
 };
 
 export default App;

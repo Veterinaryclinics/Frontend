@@ -10,47 +10,75 @@ const DashboardPage = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-gray-50 p-6 space-y-6">
-      <h1 className="text-2xl font-semibold text-gray-800 mb-2">Dashboard Overview</h1>
-      <p className="text-sm text-gray-500 mb-4">
+    <div className="min-h-screen bg-base-100 p-6 space-y-6">
+
+      {/* Header */}
+      <h1 className="text-2xl font-semibold text-base-content">Dashboard Overview</h1>
+      <p className="text-sm text-base-content/70">
         Welcome back, Dr. Smith. Here’s what’s happening today.
       </p>
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <DashboardCard title="Today's Appointments" value="12" change="+2 from yesterday" icon={Calendar} color="blue" />
-        <DashboardCard title="Active Video Calls" value="3" change="+2 scheduled next" icon={Video} color="green" />
-        <DashboardCard title="Unread Messages" value="24" change="+5 urgent replies" icon={MessageSquare} color="orange" />
-        <DashboardCard title="Total Clients" value="1,247" change="+12 this week" icon={Users} color="purple" />
-      </div>
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="col-span-2">
-          <h2 className="text-sm font-medium text-gray-700 mb-2">Today's Appointments</h2>
-          {appointments.map((a, i) => (
-            <AppointmentItem key={i} {...a} />
-          ))}
-        </div>
 
-        <div>
-          <h2 className="text-sm font-medium text-gray-700 mb-2">Recent Messages</h2>
-          <div className="bg-white border border-gray-200 rounded-lg p-4 text-sm">
-            <p className="mb-2 text-gray-800 font-medium">Lisa Davis</p>
-            <p className="text-gray-600 mb-1">Is it normal for my cat to sleep 16 hours a day?</p>
-            <div className="text-xs text-indigo-600 space-x-2">
-              <button>Reply</button>
-              <button>Mark as Read</button>
-            </div>
-            <hr className="my-3" />
-            <p className="mb-2 text-gray-800 font-medium">Tom Anderson</p>
-            <p className="text-gray-600 mb-1">Thank you for the consultation yesterday!</p>
-            <div className="text-xs text-indigo-600 space-x-2">
-              <button>Reply</button>
-              <button>Mark as Read</button>
-            </div>
-            <hr className="my-3" />
-            <button className="w-full mt-2 bg-indigo-600 text-white text-xs py-2 rounded-md hover:bg-indigo-500">
-              View All Messages
-            </button>
+      {/* Stats Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <DashboardCard title="Today's Appointments" value="12" change="+2 from yesterday" icon={Calendar} color="primary" />
+        <DashboardCard title="Active Video Calls" value="3" change="+2 scheduled next" icon={Video} color="secondary" />
+        <DashboardCard title="Unread Messages" value="24" change="+5 urgent replies" icon={MessageSquare} color="accent" />
+        <DashboardCard title="Total Clients" value="1,247" change="+12 this week" icon={Users} color="neutral" />
+      </div>
+
+      {/* Main grid */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+        {/* Appointments Section */}
+        <div className="col-span-2">
+          <h2 className="text-sm font-medium text-base-content mb-2">Today's Appointments</h2>
+
+          {/* 🔥 FIXED — Theme matching background */}
+          <div className="bg-base-200 rounded-xl p-4 border border-base-300 shadow-sm">
+            {appointments.map((a, i) => (
+              <AppointmentItem key={i} {...a} />
+            ))}
           </div>
         </div>
+
+        {/* Recent Messages Section */}
+        <div>
+          <h2 className="text-sm font-medium text-base-content mb-2">Recent Messages</h2>
+
+          {/* 🔥 FIXED — Theme-safe background */}
+          <div className="bg-base-200 rounded-xl p-4 border border-base-300 shadow-sm text-sm">
+
+            <p className="mb-2 text-base-content font-medium">Lisa Davis</p>
+            <p className="text-base-content/70 mb-1">
+              Is it normal for my cat to sleep 16 hours a day?
+            </p>
+
+            <div className="text-xs text-primary space-x-2">
+              <button>Reply</button>
+              <button>Mark as Read</button>
+            </div>
+
+            <hr className="my-3 border-base-300" />
+
+            <p className="mb-2 text-base-content font-medium">Tom Anderson</p>
+            <p className="text-base-content/70 mb-1">
+              Thank you for the consultation yesterday!
+            </p>
+
+            <div className="text-xs text-primary space-x-2">
+              <button>Reply</button>
+              <button>Mark as Read</button>
+            </div>
+
+            <hr className="my-3 border-base-300" />
+
+            <button className="w-full mt-2 btn btn-primary btn-sm">
+              View All Messages
+            </button>
+
+          </div>
+        </div>
+
       </div>
     </div>
   );

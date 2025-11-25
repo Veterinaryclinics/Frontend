@@ -13,6 +13,7 @@
     "@tailwindcss/postcss": "^4.0.6",
     "@tailwindcss/vite": "^4.0.6",
     "axios": "^1.13.1",
+    "daisyui": "^4.12.24",
     "lucide-react": "^0.548.0",
     "react": "^19.1.1",
     "react-dom": "^19.1.1",
