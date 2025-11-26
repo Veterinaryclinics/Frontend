@@ -7,11 +7,10 @@ const DashboardCard = ({ title, value, change, icon: Icon, color = "blue" }) => 
   };
 
   return (
-    <div className="bg-white p-4 rounded-lg border border-gray-200 shadow-sm flex items-center justify-between">
+    <div className="bg-primary p-4 rounded-lg border border-gray-200 shadow-sm flex items-center justify-between">
       <div>
-        <p className="text-sm text-gray-500">{title}</p>
-        <h3 className="text-xl font-semibold text-gray-800">{value}</h3>
-        <p className="text-xs text-green-600 mt-1">{change}</p>
+        <p className="text-sm text-neutral font-semibold">{title}</p>
+        <h3 className="text-xl font-semibold text-neutral-800">{value}</h3>
       </div>
       <div className={`p-2 rounded-lg ${colorMap[color]}`}>
         <Icon size={20} />

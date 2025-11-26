@@ -19,7 +19,8 @@ const Sidebar = () => {
   ];
 
   return (
-    <aside className="w-72 bg-base-100 border-r border-base-300 flex flex-col justify-between shadow-sm h-full">
+    <aside className="w-72 h-screen bg-base-100 border-r border-base-300 flex flex-col justify-between shadow-sm">
+
       {/* Logo Section */}
       <div>
         <div className="flex items-center gap-4 px-8 py-8 border-b border-base-300">
@@ -98,6 +99,7 @@ const Sidebar = () => {
           <p className="text-base-content/60 text-sm">Veterinarian</p>
         </div>
       </div>
+
     </aside>
   );
 };

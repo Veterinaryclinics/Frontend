@@ -21,9 +21,9 @@ const DashboardPage = () => {
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <DashboardCard title="Today's Appointments" value="12" change="+2 from yesterday" icon={Calendar} color="primary" />
-        <DashboardCard title="Active Video Calls" value="3" change="+2 scheduled next" icon={Video} color="secondary" />
+        <DashboardCard title="Today's Video Calls" value="3" change="+2 scheduled next" icon={Video} color="secondary" />
         <DashboardCard title="Unread Messages" value="24" change="+5 urgent replies" icon={MessageSquare} color="accent" />
-        <DashboardCard title="Total Clients" value="1,247" change="+12 this week" icon={Users} color="neutral" />
+        <DashboardCard title="Total Clients" value="8" change="+12 this week" icon={Users} color="neutral" />
       </div>
 
       {/* Main grid */}
@@ -39,45 +39,7 @@ const DashboardPage = () => {
               <AppointmentItem key={i} {...a} />
             ))}
           </div>
-        </div>
-
-        {/* Recent Messages Section */}
-        <div>
-          <h2 className="text-sm font-medium text-base-content mb-2">Recent Messages</h2>
-
-          {/* 🔥 FIXED — Theme-safe background */}
-          <div className="bg-base-200 rounded-xl p-4 border border-base-300 shadow-sm text-sm">
-
-            <p className="mb-2 text-base-content font-medium">Lisa Davis</p>
-            <p className="text-base-content/70 mb-1">
-              Is it normal for my cat to sleep 16 hours a day?
-            </p>
-
-            <div className="text-xs text-primary space-x-2">
-              <button>Reply</button>
-              <button>Mark as Read</button>
-            </div>
-
-            <hr className="my-3 border-base-300" />
-
-            <p className="mb-2 text-base-content font-medium">Tom Anderson</p>
-            <p className="text-base-content/70 mb-1">
-              Thank you for the consultation yesterday!
-            </p>
-
-            <div className="text-xs text-primary space-x-2">
-              <button>Reply</button>
-              <button>Mark as Read</button>
-            </div>
-
-            <hr className="my-3 border-base-300" />
-
-            <button className="w-full mt-2 btn btn-primary btn-sm">
-              View All Messages
-            </button>
-
-          </div>
-        </div>
+        </div>       
 
       </div>
     </div>
