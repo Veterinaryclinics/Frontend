@@ -39,7 +39,7 @@ const App = () => {
 
   return (
   <div data-theme={theme} className="min-h-screen">
-    <div className="flex h-full bg-base-100 transition-colors">
+    <div className="flex h-full bg-base-100 transition-colors pl-72">
 
       {isLayoutVisible && (
         <aside className="h-full">

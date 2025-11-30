@@ -8,7 +8,6 @@ const ChatWindow = ({ selectedChat }) => {
 
   useEffect(() => {
     if (selectedChat) {
-      // Simulate chat fetch
       setMessages([
         { from: "client", text: "Hi Doctor!", time: "2m ago" },
         { from: "vet", text: "Hey Lisa, how can I help today?", time: "1m ago" },
@@ -27,18 +26,25 @@ const ChatWindow = ({ selectedChat }) => {
   };
 
   return (
-    <section className="flex flex-col h-full">
+    <section className="flex flex-col h-full bg-base-100">
       {selectedChat ? (
         <>
           {/* Header */}
-          <div className="p-4 border-b flex justify-between items-center flex-shrink-0 bg-white">
-            <div>
-              <h2 className="font-semibold text-gray-800">{selectedChat.name}</h2>
-            </div>
+          <div className="p-4 border-b border-base-300 bg-base-100 flex justify-between items-center">
+            <h2 className="font-semibold text-base-content">
+              {selectedChat.name}
+            </h2>
           </div>
 
           {/* Messages */}
-          <div className="flex-1 overflow-y-auto bg-gray-50 p-6 space-y-4 scrollbar-thin scrollbar-thumb-gray-300">
+          <div
+            className="
+              flex-1 overflow-y-auto 
+              bg-base-200 
+              p-6 space-y-4 
+              scrollbar-thin scrollbar-thumb-base-300 scrollbar-track-base-100
+            "
+          >
             {messages.map((msg, i) => (
               <MessageBubble key={i} msg={msg} />
             ))}
@@ -49,7 +55,7 @@ const ChatWindow = ({ selectedChat }) => {
           <MessageInput onSend={handleSend} />
         </>
       ) : (
-        <div className="flex-1 flex items-center justify-center text-gray-500 text-sm">
+        <div className="flex-1 flex items-center justify-center text-base-content/70 text-sm">
           Select a conversation to start chatting
         </div>
       )}

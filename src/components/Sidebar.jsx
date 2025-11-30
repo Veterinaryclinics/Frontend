@@ -19,7 +19,7 @@ const Sidebar = () => {
   ];
 
   return (
-    <aside className="w-72 h-screen bg-base-100 border-r border-base-300 flex flex-col justify-between shadow-sm">
+    <aside className="w-72 bg-base-100 border-r border-base-300 flex flex-col justify-between shadow-sm fixed left-0 top-0 h-screen">
 
       {/* Logo Section */}
       <div>
