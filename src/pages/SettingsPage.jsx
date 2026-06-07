@@ -16,7 +16,7 @@ import api from "../lib/axios";
 // ─── Constants ────────────────────────────────────────────────────────────────
 
 const DESCRIPTION_MAX_LENGTH = 200;
-
+const MAX_CLINIC_IMAGES = 5;
 const DEFAULT_AVAILABILITY = [
   { dayOfWeek: 0, dayName: "Sunday",    isOpen: false, openingTime: "09:00", closingTime: "17:00" },
   { dayOfWeek: 1, dayName: "Monday",    isOpen: false, openingTime: "09:00", closingTime: "17:00" },
@@ -261,64 +261,377 @@ const ConfirmModal = ({ isOpen, title, description, confirmLabel, confirmClassNa
 
 // ─── Edit clinic modal ────────────────────────────────────────────────────────
 
-const EditClinicModal = ({ isOpen, clinic, isUpdatingClinic, onClose, onSubmit }) => {
-  const [formData, setFormData] = useState({ name: "", address: "", phoneNumber: "", description: "" });
+const EditClinicModal = ({
+  isOpen,
+  clinic,
+  isUpdatingClinic,
+  onClose,
+  onSubmit,
+}) => {
+  const [formData, setFormData] = useState({
+    name: "",
+    address: "",
+    phoneNumber: "",
+    description: "",
+  });
+
+  const [clinicImageFiles, setClinicImageFiles] = useState([]);
+  const [clinicImagePreviews, setClinicImagePreviews] = useState([]);
+  const [imageError, setImageError] = useState("");
 
   useEffect(() => {
-    if (clinic && isOpen) setFormData({ name: clinic.name || "", address: clinic.address || "", phoneNumber: clinic.phoneNumber || "", description: clinic.description || "" });
+    if (clinic && isOpen) {
+      setFormData({
+        name: clinic.name || "",
+        address: clinic.address || "",
+        phoneNumber: clinic.phoneNumber || "",
+        description: clinic.description || "",
+      });
+
+      setClinicImageFiles([]);
+      setClinicImagePreviews([]);
+      setImageError("");
+    }
   }, [clinic, isOpen]);
+
+  useEffect(() => {
+    return () => {
+      clinicImagePreviews.forEach((image) => {
+        if (image.previewUrl) URL.revokeObjectURL(image.previewUrl);
+      });
+    };
+  }, [clinicImagePreviews]);
 
   if (!isOpen || !clinic) return null;
 
+  const existingImages = getClinicImages(clinic);
+
   const handleChange = (e) => {
     const { name, value } = e.target;
-    if (name === "description" && value.length > DESCRIPTION_MAX_LENGTH) return;
-    setFormData((prev) => ({ ...prev, [name]: value }));
+
+    if (name === "description" && value.length > DESCRIPTION_MAX_LENGTH) {
+      return;
+    }
+
+    setFormData((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+  };
+
+  const handleImagesChange = (e) => {
+    setImageError("");
+
+    const selectedFiles = Array.from(e.target.files || []);
+
+    if (selectedFiles.length > MAX_CLINIC_IMAGES) {
+      setImageError(`You can upload a maximum of ${MAX_CLINIC_IMAGES} images.`);
+      e.target.value = "";
+      return;
+    }
+
+    const invalidFile = selectedFiles.find((file) => {
+      return !file.type.startsWith("image/");
+    });
+
+    if (invalidFile) {
+      setImageError("Please upload image files only.");
+      e.target.value = "";
+      return;
+    }
+
+    clinicImagePreviews.forEach((image) => {
+      if (image.previewUrl) URL.revokeObjectURL(image.previewUrl);
+    });
+
+    const nextPreviews = selectedFiles.map((file) => ({
+      file,
+      previewUrl: URL.createObjectURL(file),
+      name: file.name,
+    }));
+
+    setClinicImageFiles(selectedFiles);
+    setClinicImagePreviews(nextPreviews);
+  };
+
+  const handleRemoveNewImage = (indexToRemove) => {
+    setClinicImagePreviews((prev) => {
+      const imageToRemove = prev[indexToRemove];
+
+      if (imageToRemove?.previewUrl) {
+        URL.revokeObjectURL(imageToRemove.previewUrl);
+      }
+
+      return prev.filter((_, index) => index !== indexToRemove);
+    });
+
+    setClinicImageFiles((prev) =>
+      prev.filter((_, index) => index !== indexToRemove)
+    );
+  };
+
+  const handleClearNewImages = () => {
+    clinicImagePreviews.forEach((image) => {
+      if (image.previewUrl) URL.revokeObjectURL(image.previewUrl);
+    });
+
+    setClinicImageFiles([]);
+    setClinicImagePreviews([]);
+    setImageError("");
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setImageError("");
+
+    if (clinicImageFiles.length > MAX_CLINIC_IMAGES) {
+      setImageError(`You can upload a maximum of ${MAX_CLINIC_IMAGES} images.`);
+      return;
+    }
+
     const clinicId = clinic.id || clinic.clinicId;
-    const success = await onSubmit(clinicId, formData);
-    if (success) onClose();
+
+    const requestData = new FormData();
+
+    requestData.append("Name", formData.name);
+    requestData.append("Address", formData.address);
+    requestData.append("PhoneNumber", formData.phoneNumber);
+    requestData.append("Description", formData.description);
+
+    clinicImageFiles.forEach((file) => {
+      requestData.append("ClinicImages", file);
+    });
+
+    const localPatch = {
+      name: formData.name,
+      address: formData.address,
+      phoneNumber: formData.phoneNumber,
+      description: formData.description,
+    };
+
+    const success = await onSubmit(clinicId, requestData, localPatch);
+
+    if (success) {
+      handleClearNewImages();
+      onClose();
+    }
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center px-4" style={{ backgroundColor: "rgba(0,0,0,0.45)", backdropFilter: "blur(4px)" }}>
-      <form onSubmit={handleSubmit} className="bg-base-100 border border-base-200 rounded-3xl shadow-2xl w-full max-w-md p-6 max-h-[90vh] overflow-y-auto">
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center px-4"
+      style={{
+        backgroundColor: "rgba(0,0,0,0.45)",
+        backdropFilter: "blur(4px)",
+      }}
+    >
+      <form
+        onSubmit={handleSubmit}
+        className="bg-base-100 border border-base-200 rounded-3xl shadow-2xl w-full max-w-2xl p-6 max-h-[90vh] overflow-y-auto"
+      >
         <div className="flex items-start justify-between gap-3 mb-5">
           <div>
-            <h3 className="text-base font-semibold text-base-content">Edit Clinic</h3>
-            <p className="text-xs text-base-content/40 mt-0.5">Update the details shown across the dashboard.</p>
+            <h3 className="text-base font-semibold text-base-content">
+              Edit Clinic
+            </h3>
+            <p className="text-xs text-base-content/40 mt-0.5">
+              Update clinic details and gallery images.
+            </p>
           </div>
-          <button type="button" onClick={onClose} className="btn btn-ghost btn-xs btn-circle text-base-content/40" disabled={isUpdatingClinic}><X size={15} /></button>
+
+          <button
+            type="button"
+            onClick={onClose}
+            className="btn btn-ghost btn-xs btn-circle text-base-content/40"
+            disabled={isUpdatingClinic}
+          >
+            <X size={15} />
+          </button>
         </div>
 
         <div className="space-y-4">
           {[
-            { label: "Clinic Name", name: "name", type: "text", placeholder: "Clinic name", required: true },
-            { label: "Address", name: "address", type: "text", placeholder: "Clinic address", required: true },
-            { label: "Phone Number", name: "phoneNumber", type: "tel", placeholder: "01018842808", required: true },
+            {
+              label: "Clinic Name",
+              name: "name",
+              type: "text",
+              placeholder: "Clinic name",
+              required: true,
+            },
+            {
+              label: "Address",
+              name: "address",
+              type: "text",
+              placeholder: "Clinic address",
+              required: true,
+            },
+            {
+              label: "Phone Number",
+              name: "phoneNumber",
+              type: "tel",
+              placeholder: "01018842808",
+              required: true,
+            },
           ].map(({ label, name, type, placeholder, required }) => (
             <div key={name}>
-              <label className="block text-xs font-medium text-base-content/60 mb-1.5">{label}</label>
-              <input type={type} name={name} placeholder={placeholder} required={required} className="input input-bordered input-sm w-full rounded-xl" value={formData[name]} onChange={handleChange} disabled={isUpdatingClinic} />
+              <label className="block text-xs font-medium text-base-content/60 mb-1.5">
+                {label}
+              </label>
+              <input
+                type={type}
+                name={name}
+                placeholder={placeholder}
+                required={required}
+                className="input input-bordered input-sm w-full rounded-xl"
+                value={formData[name]}
+                onChange={handleChange}
+                disabled={isUpdatingClinic}
+              />
             </div>
           ))}
 
           <div>
             <div className="flex items-center justify-between mb-1.5">
-              <label className="text-xs font-medium text-base-content/60">Description</label>
-              <span className="text-xs text-base-content/30">{formData.description.length}/{DESCRIPTION_MAX_LENGTH}</span>
+              <label className="text-xs font-medium text-base-content/60">
+                Description
+              </label>
+              <span className="text-xs text-base-content/30">
+                {formData.description.length}/{DESCRIPTION_MAX_LENGTH}
+              </span>
             </div>
-            <textarea name="description" placeholder="Briefly describe this clinic…" className="textarea textarea-bordered textarea-sm w-full min-h-24 resize-none rounded-xl" value={formData.description} onChange={handleChange} maxLength={DESCRIPTION_MAX_LENGTH} disabled={isUpdatingClinic} />
+
+            <textarea
+              name="description"
+              placeholder="Briefly describe this clinic…"
+              className="textarea textarea-bordered textarea-sm w-full min-h-24 resize-none rounded-xl"
+              value={formData.description}
+              onChange={handleChange}
+              maxLength={DESCRIPTION_MAX_LENGTH}
+              disabled={isUpdatingClinic}
+            />
+          </div>
+
+          <div className="border border-base-200 rounded-2xl p-4 bg-base-200/30">
+            <div className="flex items-start justify-between gap-3 mb-3">
+              <div>
+                <p className="text-xs font-semibold text-base-content/70">
+                  Clinic Images
+                </p>
+                <p className="text-xs text-base-content/40 mt-0.5">
+                  Upload up to {MAX_CLINIC_IMAGES} images. Selecting new images
+                  will send them with the update request.
+                </p>
+              </div>
+
+              {clinicImageFiles.length > 0 && (
+                <button
+                  type="button"
+                  onClick={handleClearNewImages}
+                  className="btn btn-xs btn-ghost rounded-lg"
+                  disabled={isUpdatingClinic}
+                >
+                  Clear
+                </button>
+              )}
+            </div>
+
+            {existingImages.length > 0 && clinicImagePreviews.length === 0 && (
+              <div className="mb-4">
+                <p className="text-[11px] uppercase tracking-wide text-base-content/35 mb-2">
+                  Current Images
+                </p>
+
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                  {existingImages.slice(0, MAX_CLINIC_IMAGES).map((image, index) => (
+                    <div
+                      key={`${image.url}-${index}`}
+                      className="aspect-video rounded-xl overflow-hidden border border-base-200 bg-base-300"
+                    >
+                      <img
+                        src={image.url}
+                        alt={image.name || "Clinic image"}
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {clinicImagePreviews.length > 0 && (
+              <div className="mb-4">
+                <p className="text-[11px] uppercase tracking-wide text-base-content/35 mb-2">
+                  New Images
+                </p>
+
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                  {clinicImagePreviews.map((image, index) => (
+                    <div
+                      key={`${image.name}-${index}`}
+                      className="relative aspect-video rounded-xl overflow-hidden border border-base-200 bg-base-300"
+                    >
+                      <img
+                        src={image.previewUrl}
+                        alt={image.name}
+                        className="w-full h-full object-cover"
+                      />
+
+                      <button
+                        type="button"
+                        onClick={() => handleRemoveNewImage(index)}
+                        className="absolute top-1.5 right-1.5 w-6 h-6 rounded-full bg-black/60 text-white flex items-center justify-center hover:bg-error"
+                        disabled={isUpdatingClinic}
+                      >
+                        <X size={12} />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            <input
+              type="file"
+              accept="image/*"
+              multiple
+              className="file-input file-input-bordered file-input-sm w-full rounded-xl"
+              onChange={handleImagesChange}
+              disabled={isUpdatingClinic}
+            />
+
+            {imageError && (
+              <p className="text-xs text-error mt-2">{imageError}</p>
+            )}
+
+            <p className="text-[11px] text-base-content/35 mt-2">
+              Note: if the backend replaces images on update, the new selected
+              images will become the clinic gallery. If the backend appends
+              images, old images will remain unless backend supports image
+              deletion.
+            </p>
           </div>
         </div>
 
         <div className="flex justify-end gap-2 mt-5">
-          <button type="button" className="btn btn-sm btn-ghost rounded-xl" onClick={onClose} disabled={isUpdatingClinic}>Cancel</button>
-          <button type="submit" className="btn btn-sm btn-primary rounded-xl" disabled={isUpdatingClinic}>
-            {isUpdatingClinic ? <span className="loading loading-spinner loading-xs" /> : "Save Changes"}
+          <button
+            type="button"
+            className="btn btn-sm btn-ghost rounded-xl"
+            onClick={onClose}
+            disabled={isUpdatingClinic}
+          >
+            Cancel
+          </button>
+
+          <button
+            type="submit"
+            className="btn btn-sm btn-primary rounded-xl"
+            disabled={isUpdatingClinic}
+          >
+            {isUpdatingClinic ? (
+              <span className="loading loading-spinner loading-xs" />
+            ) : (
+              "Save Changes"
+            )}
           </button>
         </div>
       </form>
@@ -493,16 +806,38 @@ const SettingsPage = () => {
   const handleSwitchClinic = () => { clearSelectedClinic(); navigate("/clinics", { replace: true }); };
   const handleConfirmLogout = async () => { await logout(); setIsLogoutModalOpen(false); navigate("/login", { replace: true }); };
 
-  const handleUpdateClinic = async (clinicIdToUpdate, formData) => {
-    const success = await updateClinic(clinicIdToUpdate, formData);
-    if (success) {
-      const updated = { ...activeClinic, ...formData, id: clinicIdToUpdate };
+  const handleUpdateClinic = async (clinicIdToUpdate, payload, localPatch = {}) => {
+  const success = await updateClinic(clinicIdToUpdate, payload);
+
+  if (success) {
+    try {
+      const res = await api.get(`/clinic/getclinic/${clinicIdToUpdate}`);
+      const latestClinic = res.data?.data ?? res.data;
+
+      const updated = {
+        ...activeClinic,
+        ...latestClinic,
+        id: clinicIdToUpdate,
+      };
+
       setClinicDetails(updated);
       localStorage.setItem("petzy_selected_clinic", JSON.stringify(updated));
-      return true;
+    } catch {
+      const updated = {
+        ...activeClinic,
+        ...localPatch,
+        id: clinicIdToUpdate,
+      };
+
+      setClinicDetails(updated);
+      localStorage.setItem("petzy_selected_clinic", JSON.stringify(updated));
     }
-    return false;
-  };
+
+    return true;
+  }
+
+  return false;
+};
 
   const handleUpdateAvailability = async (nextAvailability) => {
     if (!clinicId) { toast.error("No clinic selected"); return false; }

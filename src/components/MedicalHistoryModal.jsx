@@ -387,20 +387,17 @@ const MedicalHistoryModal = ({
             </div>
             <div>
               <h2 className="text-sm font-bold text-base-content">{title}</h2>
-              <p className="text-[11px] text-base-content/40 mt-0.5">View, print, or save as PDF</p>
+              <p className="text-[11px] text-base-content/40 mt-0.5">
+                View medical history records
+              </p>
             </div>
           </div>
           <div className="flex items-center gap-2">
             <button
               type="button"
-              className="btn btn-sm btn-ghost gap-1.5 rounded-xl border border-base-300"
-              onClick={() => window.print()}
-              disabled={isLoading || records.length === 0}
+              className="btn btn-ghost btn-sm btn-circle"
+              onClick={onClose}
             >
-              <Printer size={14} />
-              <span className="text-xs">Print / PDF</span>
-            </button>
-            <button type="button" className="btn btn-ghost btn-sm btn-circle" onClick={onClose}>
               <X size={16} />
             </button>
           </div>

@@ -292,33 +292,50 @@ createClinic: async (payload) => {
     localStorage.setItem("petzy_selected_clinic", JSON.stringify(clinic));
     set({ selectedClinic: clinic });
   },
-  updateClinic: async (clinicId, formData) => {
+updateClinic: async (clinicId, payload) => {
   set({ isUpdatingClinic: true });
 
   try {
-    const payload = {
-        name: formData.name,
-        address: formData.address,
-        phoneNumber: formData.phoneNumber,
-        description: formData.description,
+    const isFormData = payload instanceof FormData;
 
-        // Schedule support
-        startingTime: formData.startingTime,
-        endingTime: formData.endingTime,
-        availability: formData.availability,
+    let updatedClinic;
+
+    if (isFormData) {
+      const baseUrl = api.defaults.baseURL || "";
+      const token = localStorage.getItem("petzy_access_token");
+
+      const response = await fetch(`${baseUrl}/clinic/update/${clinicId}`, {
+        method: "PUT",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          // Do not set Content-Type for FormData.
+          // Browser adds multipart/form-data boundary automatically.
+        },
+        body: payload,
+      });
+
+      const contentType = response.headers.get("content-type") || "";
+
+      const responseBody = contentType.includes("application/json")
+        ? await response.json()
+        : await response.text();
+
+      if (!response.ok) {
+        throw {
+          response: {
+            status: response.status,
+            data: responseBody,
+          },
         };
+      }
 
-    const res = await api.put(`/clinic/update/${clinicId}`, payload);
-
-    console.log("UPDATE CLINIC RESPONSE:", res.data);
+      updatedClinic = responseBody?.data ?? responseBody;
+    } else {
+      const res = await api.put(`/clinic/update/${clinicId}`, payload);
+      updatedClinic = res.data?.data ?? res.data;
+    }
 
     toast.success("Clinic updated successfully.");
-
-    const updatedClinic = {
-      id: clinicId,
-      ...payload,
-      ...(res.data?.data ?? res.data ?? {}),
-    };
 
     set((state) => {
       const updatedClinics = state.clinics.map((clinic) => {
@@ -327,7 +344,7 @@ createClinic: async (payload) => {
         if (currentClinicId === clinicId) {
           return {
             ...clinic,
-            ...updatedClinic,
+            ...(typeof updatedClinic === "object" ? updatedClinic : {}),
           };
         }
 
@@ -342,7 +359,7 @@ createClinic: async (payload) => {
       const nextSelectedClinic = shouldUpdateSelectedClinic
         ? {
             ...state.selectedClinic,
-            ...updatedClinic,
+            ...(typeof updatedClinic === "object" ? updatedClinic : {}),
           }
         : state.selectedClinic;
 

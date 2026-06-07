@@ -149,13 +149,13 @@ const SignupPage = () => {
             type="password"
             name="confirmPassword"
             placeholder="Confirm your password"
-            className="input input-bordered w-full mb-6"
+            className="input input-bordered w-full "
             value={formData.confirmPassword}
             onChange={handleChange}
             minLength={8}
             required
           />
-
+          <div className="h-4" />
           <button type="submit" className="btn btn-primary w-full" disabled={isSigningUp}>
             {isSigningUp ? "Creating account..." : "Create Account"}
           </button>
