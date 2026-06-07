@@ -9,7 +9,8 @@ import LoginPage from "./pages/LoginPage";
 import SignupPage from "./pages/SignupPage";
 import ForgotPasswordPage from "./pages/ForgotPasswordPage";
 import ResetPasswordPage from "./pages/ResetPasswordPage";
-
+import AdminLoginPage from "./pages/AdminLoginPage";
+import AdminClinicsPage from "./pages/AdminClinicsPage";
 import DashboardPage from "./pages/DashboardPage";
 import BookingsPage from "./pages/BookingsPage";
 import VideoCallsPage from "./pages/VideoCallsPage";
@@ -23,26 +24,33 @@ import ClinicSelectionPage from "./pages/ClinicSelectionPage";
 import { useAuthStore } from "./store/useAuthStore";
 import { useThemeStore } from "./store/useThemeStore";
 
-
 const App = () => {
   const { authUser, checkAuth, isCheckingAuth } = useAuthStore();
   const { theme } = useThemeStore();
   const location = useLocation();
 
+  const isAdminSession =
+    localStorage.getItem("petzy_admin_session") === "true" &&
+    Boolean(localStorage.getItem("petzy_access_token"));
+
+  const isAdminRoute = location.pathname.startsWith("/admin");
+
   useEffect(() => {
-    checkAuth();
-  }, [checkAuth]);
+    if (!isAdminSession) {
+      checkAuth();
+    }
+  }, [checkAuth, isAdminSession]);
+const noLayoutRoutes = [
+  "/login",
+  "/signup",
+  "/confirm-email",
+  "/forgot-password",
+  "/reset-password",
+  "/clinics",
+];
 
-  const noLayoutRoutes = [
-    "/login",
-    "/signup",
-    "/confirm-email",
-    "/forgot-password",
-    "/reset-password",
-    "/clinics"
-  ];
-
-  const isLayoutVisible = !noLayoutRoutes.includes(location.pathname);
+const isLayoutVisible =
+  !noLayoutRoutes.includes(location.pathname) && !isAdminRoute;
 
   const LoadingScreen = () => (
     <div data-theme={theme} className="min-h-screen flex items-center justify-center bg-base-100">
@@ -50,7 +58,11 @@ const App = () => {
     </div>
   );
 
-  const ProtectedRoute = ({ children }) => {
+const ProtectedRoute = ({ children }) => {
+  if (isAdminSession) {
+    return <Navigate to="/admin/clinics" replace />;
+  }
+
   if (isCheckingAuth) {
     return <LoadingScreen />;
   }
@@ -60,19 +72,39 @@ const App = () => {
   }
 
   return children;
-};``
+};
 
-  const PublicRoute = ({ children }) => {
-    if (isCheckingAuth) {
-      return <LoadingScreen />;
-    }
+const PublicRoute = ({ children }) => {
+  if (isAdminSession) {
+    return <Navigate to="/admin/clinics" replace />;
+  }
 
-    if (authUser) {
-      return <Navigate to="/" replace />;
-    }
+  if (isCheckingAuth) {
+    return <LoadingScreen />;
+  }
 
-    return children;
-  };
+  if (authUser) {
+    return <Navigate to="/" replace />;
+  }
+
+  return children;
+};
+
+const AdminProtectedRoute = ({ children }) => {
+  if (!isAdminSession) {
+    return <Navigate to="/admin/login" replace />;
+  }
+
+  return children;
+};
+
+const AdminPublicRoute = ({ children }) => {
+  if (isAdminSession) {
+    return <Navigate to="/admin/clinics" replace />;
+  }
+
+  return children;
+};
 
   return (
     <div data-theme={theme} className="min-h-screen">
@@ -113,7 +145,23 @@ const App = () => {
                   </PublicRoute>
                 }
               />
+              <Route
+                path="/admin/login"
+                element={
+                  <AdminPublicRoute>
+                    <AdminLoginPage />
+                  </AdminPublicRoute>
+                }
+              />
 
+              <Route
+                path="/admin/clinics"
+                element={
+                  <AdminProtectedRoute>
+                    <AdminClinicsPage />
+                  </AdminProtectedRoute>
+                }
+              />
               <Route
                 path="/forgot-password"
                 element={
